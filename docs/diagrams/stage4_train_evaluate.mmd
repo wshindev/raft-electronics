@@ -1,0 +1,15 @@
+sequenceDiagram
+  participant D as Training set
+  participant TR as Training (LoRA)
+  participant S as Model server
+  participant E as Eval set
+  participant J as Judge (Gemma 31B)
+  participant R as Report
+
+  D->>TR: 4,472 examples
+  TR->>S: adapter for Gemma 4 E4B (1 epoch)
+  E->>S: 979 questions × (no documents, top 5)<br/>base model and base + adapter
+  S->>J: final answers
+  E->>J: key points
+  J->>R: each point covered / partly / missing<br/>numbers checked in code
+  Note over R: adapter − base:<br/>Fable −0.03 / −0.04 (clear)<br/>exam −0.05 / −0.07 (within noise)

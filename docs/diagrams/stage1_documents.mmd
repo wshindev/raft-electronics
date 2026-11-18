@@ -1,0 +1,15 @@
+sequenceDiagram
+  participant M as ModEL source
+  participant P as parse.py
+  participant R as render.py
+  participant C as clean_text.py
+  participant S as split.py
+
+  M->>P: ~4,000 LaTeX files + exam generator source
+  P->>P: split into sections, drop duplicates (7,604 → 5,846)<br/>1,249 exam Q/A with their variant groups
+  M->>R: 7,619 diagrams (PostScript)
+  R->>C: text labels read from each diagram
+  P->>C: sections + exam Q/A
+  Note over C: LaTeX → plain text<br/>each figure → [Figure: its labels]
+  C->>S: clean text
+  S->>S: hold out 16 modules from training<br/>keep 243 exam items that need no figure<br/>variant groups never split

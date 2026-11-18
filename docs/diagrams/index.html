@@ -1,0 +1,95 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>RAFT-001 pipeline diagrams</title>
+<style>body{max-width:1000px;margin:2em auto;font-family:sans-serif;padding:0 1em}
+.src{color:#777;font-size:0.85em;margin-top:-0.8em}.mermaid{margin:1em 0 3em}</style>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({startOnLoad: true});
+</script></head><body>
+<h1>RAFT-001 pipeline (final, 31B-teacher run)</h1>
+<p>Generated from the .mmd files in this folder by build_index.py. Needs internet (mermaid from jsdelivr).</p>
+<h2>1. Documents: ModEL → clean text</h2>
+<p class="src">stage1_documents.mmd</p>
+<pre class="mermaid">
+sequenceDiagram
+  participant M as ModEL source
+  participant P as parse.py
+  participant R as render.py
+  participant C as clean_text.py
+  participant S as split.py
+
+  M-&gt;&gt;P: ~4,000 LaTeX files + exam generator source
+  P-&gt;&gt;P: split into sections, drop duplicates (7,604 → 5,846)&lt;br/&gt;1,249 exam Q/A with their variant groups
+  M-&gt;&gt;R: 7,619 diagrams (PostScript)
+  R-&gt;&gt;C: text labels read from each diagram
+  P-&gt;&gt;C: sections + exam Q/A
+  Note over C: LaTeX → plain text&lt;br/&gt;each figure → [Figure: its labels]
+  C-&gt;&gt;S: clean text
+  S-&gt;&gt;S: hold out 16 modules from training&lt;br/&gt;keep 243 exam items that need no figure&lt;br/&gt;variant groups never split
+</pre>
+<h2>2. Eval set: questions, retrieval, key points, judge</h2>
+<p class="src">stage2_eval_set.mmd</p>
+<pre class="mermaid">
+sequenceDiagram
+  participant M as Me
+  participant S as split
+  participant F as Fable 5.1
+  participant R as Retriever
+  participant O as Opus 5.5
+  participant J as Judge
+  participant E as Eval set
+
+  S-&gt;&gt;F: 323 held-out sections
+  F-&gt;&gt;E: 736 questions with reference answers
+  S-&gt;&gt;E: 243 exam Q/A (Kuphaldt&#x27;s own)
+  E-&gt;&gt;R: every question
+  Note over R: embedder + keyword search → top 20&lt;br/&gt;reranker (electronics instruction) → top 5&lt;br/&gt;right section in the top 5: 98.4%
+  R-&gt;&gt;E: top 5 sections per question
+  E-&gt;&gt;O: question + reference answer
+  O-&gt;&gt;E: 2,720 key points (numeric / exact / conceptual)
+  M-&gt;&gt;E: settle flagged key points, merge look-alike exam groups
+  M-&gt;&gt;J: 60 hand-graded answers
+  Note over J: agreement with hand grades:&lt;br/&gt;Haiku κ 0.81, local Gemma 31B κ 0.78 (chosen)
+  E-&gt;&gt;E: export: one row per question + corpus + prompts
+</pre>
+<h2>3. Training data: Sonnet questions, Gemma 31B answers</h2>
+<p class="src">stage3_training_data.mmd</p>
+<pre class="mermaid">
+sequenceDiagram
+  participant Y as Me
+  participant T as Training sections
+  participant SO as Sonnet 5.5
+  participant A as assemble.py
+  participant G as Gemma 4 31B
+  participant D as Training set
+
+  T-&gt;&gt;SO: ~3,050 sections
+  SO-&gt;&gt;A: questions + short reference answers
+  A-&gt;&gt;A: drop questions close to exam items&lt;br/&gt;attach 5 documents per question:&lt;br/&gt;80% right section + 4 decoys, 20% decoys only
+  Y-&gt;&gt;G: pilot 100 (78 kept), then full run
+  A-&gt;&gt;G: question + 5 documents
+  G-&gt;&gt;G: answer step by step, quoting the documents (~300 tokens)
+  G-&gt;&gt;G: same final answer as Sonnet&#x27;s reference?
+  G-&gt;&gt;D: keep: match + every quote verbatim&lt;br/&gt;4,472 of 6,248
+  Note over G,D: 31B declined 42% of the decoys-only questions,&lt;br/&gt;so ~10% of kept examples lack the right section (was 20%)
+</pre>
+<h2>4. Train and evaluate</h2>
+<p class="src">stage4_train_evaluate.mmd</p>
+<pre class="mermaid">
+sequenceDiagram
+  participant D as Training set
+  participant TR as Training (LoRA)
+  participant S as Model server
+  participant E as Eval set
+  participant J as Judge (Gemma 31B)
+  participant R as Report
+
+  D-&gt;&gt;TR: 4,472 examples
+  TR-&gt;&gt;S: adapter for Gemma 4 E4B (1 epoch)
+  E-&gt;&gt;S: 979 questions × (no documents, top 5)&lt;br/&gt;base model and base + adapter
+  S-&gt;&gt;J: final answers
+  E-&gt;&gt;J: key points
+  J-&gt;&gt;R: each point covered / partly / missing&lt;br/&gt;numbers checked in code
+  Note over R: adapter − base:&lt;br/&gt;Fable −0.03 / −0.04 (clear)&lt;br/&gt;exam −0.05 / −0.07 (within noise)
+</pre>
+</body></html>

@@ -1,0 +1,14 @@
+.env*
+.venv
+uv-requirements.sh
+data/
+ModEL/
+.claude/settings.local.json
+__pycache__
+train/tokenizers/
+docker/
+CLAUDE.md
+docs/old/
+docs/posts/website-format.md
+scaffolding/
+docs/posts/user-edit/

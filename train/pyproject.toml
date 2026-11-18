@@ -1,0 +1,20 @@
+[project]
+name = "train"
+version = "0.1.0"
+description = "RAFT-001 fine-tuning environment (Unsloth, Python 3.12)"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "unsloth>=2026.10.9",
+    "torch",
+    "torchvision",
+]
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+torchvision = [{ index = "pytorch-cu128" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

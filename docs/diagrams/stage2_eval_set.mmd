@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant M as Me
+  participant S as split
+  participant F as Fable 5.1
+  participant R as Retriever
+  participant O as Opus 5.5
+  participant J as Judge
+  participant E as Eval set
+
+  S->>F: 323 held-out sections
+  F->>E: 736 questions with reference answers
+  S->>E: 243 exam Q/A (Kuphaldt's own)
+  E->>R: every question
+  Note over R: embedder + keyword search → top 20<br/>reranker (electronics instruction) → top 5<br/>right section in the top 5: 98.4%
+  R->>E: top 5 sections per question
+  E->>O: question + reference answer
+  O->>E: 2,720 key points (numeric / exact / conceptual)
+  M->>E: settle flagged key points, merge look-alike exam groups
+  M->>J: 60 hand-graded answers
+  Note over J: agreement with hand grades:<br/>Haiku κ 0.81, local Gemma 31B κ 0.78 (chosen)
+  E->>E: export: one row per question + corpus + prompts

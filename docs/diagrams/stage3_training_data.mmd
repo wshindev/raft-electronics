@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant Y as Me
+  participant T as Training sections
+  participant SO as Sonnet 5.5
+  participant A as assemble.py
+  participant G as Gemma 4 31B
+  participant D as Training set
+
+  T->>SO: ~3,050 sections
+  SO->>A: questions + short reference answers
+  A->>A: drop questions close to exam items<br/>attach 5 documents per question:<br/>80% right section + 4 decoys, 20% decoys only
+  Y->>G: pilot 100 (78 kept), then full run
+  A->>G: question + 5 documents
+  G->>G: answer step by step, quoting the documents (~300 tokens)
+  G->>G: same final answer as Sonnet's reference?
+  G->>D: keep: match + every quote verbatim<br/>4,472 of 6,248
+  Note over G,D: 31B declined 42% of the decoys-only questions,<br/>so ~10% of kept examples lack the right section (was 20%)
