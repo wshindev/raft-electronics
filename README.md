@@ -2,7 +2,7 @@
 
 This project builds RAFT (Retrieval-Augmented Fine-Tuning) training data and an eval set from an open electronics curriculum, fine-tunes a small open model on one 32 GB GPU, and measures the result.
 
-**Short answer: not on this material.** Three LoRA adapters for Gemma 4 E4B, each trained on answers from a different teacher model, all scored below the untuned base model. Retrieval on its own gave the gain. The likely reason, which we did not test, is that the base model already knows this public coursework, so fine-tuning had little to add and still cost some general skill. The next experiment is a niche source the model hasn't seen.
+**Short answer: not on this material.** Three LoRA adapters for Gemma 4 E4B, each trained on answers from a different teacher model, all scored below the untuned base model. Retrieval on its own gave the gain. The likely reason, which we did not test, is that the base model already knows this public coursework, so fine-tuning had little to add and still cost some general skill. That explanation stays untested: no follow-up on other sources is planned.
 
 Source: [*Modular Electronics Learning*](https://ibiblio.org/kuphaldt/socratic/model/index.html) (ModEL) by Tony R. Kuphaldt, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
@@ -53,7 +53,7 @@ What was measured along the way:
 
 What was not varied: model size (E4B only), training strength, the training mix, and the source.
 
-## What carries over to a new source
+## What's reusable
 - An all-local pipeline: teacher, retriever, reranker and judge all run on llama-server.
 - A judge validated against hand grades.
 - **A headroom check before generating anything:** run the base model with and without documents on 20–30 questions. Fine-tune only if the base model is weak without documents.
